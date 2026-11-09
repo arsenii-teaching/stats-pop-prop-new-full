@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snowy's Sampling Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---- TNIS palette: adjust here ---- */
+:root{
+  --navy:#0d2c54; --navy2:#1a3f72; --gold:#f5b335; --gold2:#ffd27a;
+  --ice:#eaf3fc; --ice2:#d6e7f7; --sky:#3d9be0;
+  --bg:#f4f8fc; --panel:#ffffff; --line:#dbe5f0; --ink:#13243b; --muted:#5d6f86;
+  --girl:#ec4899; --boy:#2f7fe0; --bad:#d64545; --good:#1f9d61;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45}
+h1,h2,h3,.mont{font-family:Montserrat,Inter,sans-serif}
+.topbar{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+.topbar::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.18) 1.2px,transparent 1.6px),radial-gradient(circle,rgba(255,255,255,.12) 1px,transparent 1.4px);
+  background-size:46px 46px,29px 29px;background-position:0 0,13px 17px}
+.topin{max-width:1320px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:relative;z-index:1}
+.logo{height:46px;display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:5px 10px}
+.logo img{height:36px;width:auto;display:block}
+.logo .fallback{display:none;align-items:center;gap:8px;color:var(--navy);font:800 15px Montserrat,Inter,sans-serif;letter-spacing:.08em}
+.topbar h1{margin:0;font-size:24px;font-weight:800;letter-spacing:.01em}
+.topbar h1 span{color:var(--gold)}
+.topbar p{margin:2px 0 0;color:#c9d8ec;font-size:13px}
+.tag{margin-left:auto;font:700 11px Inter;padding:4px 10px;border-radius:20px;background:var(--gold);color:var(--navy);letter-spacing:.06em;text-transform:uppercase}
+.wrap{max-width:1320px;margin:0 auto;padding:16px 16px 48px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:16px}
+@media(max-width:1020px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(13,44,84,.05)}
+.panel h2{margin:0 0 10px;font-size:17px;color:var(--navy);display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.panel h2 small{font:500 12px Inter;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.spacer{flex:1}
+button{font:600 14px Inter;border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 13px;border-radius:10px;cursor:pointer;transition:.15s}
+button:hover{border-color:var(--sky)}
+button.primary{background:var(--navy);color:#fff;border-color:var(--navy);font-family:Montserrat,Inter,sans-serif;font-weight:700}
+button.primary:hover{background:var(--navy2)}
+button:disabled{opacity:.45;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.seg button{border:0;border-radius:0;color:var(--muted);padding:7px 11px}
+.seg button.on{background:var(--ice);color:var(--navy);box-shadow:inset 0 -3px 0 var(--gold)}
+input[type=text]{width:78px;font:600 14px Inter;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+input[type=text]:focus{outline:none;border-color:var(--sky)}
+input.bad{border-color:var(--bad)}
+.msg{font-size:12px;color:var(--bad)}
+
+/* school / population */
+.school{background:linear-gradient(180deg,var(--ice),#f7fbff);border:1px solid var(--ice2);border-radius:12px;padding:8px}
+#popSvg{width:100%;height:auto;display:block}
+#popSvg use{transition:opacity .35s, transform .35s}
+#popSvg use.g{fill:var(--girl)} #popSvg use.b{fill:var(--boy)}
+#popSvg.sampled use{opacity:.18}
+#popSvg.sampled use.in{opacity:1}
+#popSvg .ring{fill:none;stroke:var(--gold);stroke-width:1.6}
+.popkey{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+
+/* snowy + tray */
+.stage{display:flex;gap:12px;align-items:flex-start;margin-top:12px}
+.snowy{flex:none;width:118px;position:relative}
+.snowy svg{width:118px;height:auto;display:block}
+.snowy .name{text-align:center;font:700 12px Montserrat,Inter,sans-serif;color:var(--navy);margin-top:-2px}
+.bubble{position:relative;background:#fff;border:2px solid var(--navy);border-radius:14px;padding:8px 11px;font-size:13px;min-height:42px;flex:1;margin-top:10px}
+.bubble::before{content:"";position:absolute;left:-11px;top:16px;border:9px solid transparent;border-right-color:var(--navy);border-left:0}
+.bubble::after{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:#fff;border-left:0}
+.tray{margin-top:10px;background:#fff;border:1px dashed var(--ice2);border-radius:12px;padding:10px;min-height:76px}
+.tray .kids{display:flex;flex-wrap:wrap;gap:4px}
+.kid{width:16px;height:22px;position:relative;animation:pop .35s cubic-bezier(.2,1.4,.4,1) both}
+.kid::before{content:"";position:absolute;left:4px;top:0;width:8px;height:8px;border-radius:50%;background:var(--c)}
+.kid::after{content:"";position:absolute;left:1px;top:9px;width:14px;height:13px;border-radius:7px 7px 2px 2px;background:var(--c)}
+.kid.g{--c:var(--girl)} .kid.b{--c:var(--boy)}
+.tray.small .kid{width:9px;height:12px} .tray.small .kid::before{left:2px;width:5px;height:5px}
+.tray.small .kid::after{left:.5px;top:5px;width:8px;height:7px}
+.tray.small .kids{gap:2px}
+@keyframes pop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+.eq{font:700 18px Montserrat,Inter,sans-serif;color:var(--navy);margin-top:8px}
+.eq b{color:var(--gold);background:var(--navy);padding:0 8px;border-radius:6px}
+.eq .sub{font:500 12px Inter;color:var(--muted);display:block;margin-top:2px}
+
+/* charts + stats */
+.chart{width:100%;display:block}
+.chart text{fill:var(--muted);font:11px Inter}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:4px;align-items:center}
+.legend i{display:inline-block;width:16px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+label.tog{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--ice);border-radius:10px;padding:7px 10px}
+.stat .l{font-size:11px;color:var(--muted)}
+.stat .v{font:700 20px Montserrat,Inter,sans-serif;color:var(--navy);font-variant-numeric:tabular-nums}
+.stat .v.gold{color:#b77900}
+.conds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:560px){.conds{grid-template-columns:1fr}}
+.cond{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px}
+.cond .h{font:700 13px Montserrat,Inter,sans-serif;color:var(--navy);display:flex;justify-content:space-between}
+.ok{color:var(--good)} .no{color:var(--bad)}
+.claim{margin-top:12px;background:var(--ice);border-radius:12px;padding:10px 12px}
+.claim .row{margin:6px 0 0}
+.claim .res{font-size:13px;margin-top:6px}
+.verdict{display:inline-block;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:4px}
+.verdict.ok{background:#e1f5ea} .verdict.no{background:#fde7e7}
+table.cmp{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.cmp th{font-weight:600;color:var(--muted);text-align:right;padding:6px;border-bottom:2px solid var(--line);font-size:12px}
+table.cmp td{text-align:right;padding:6px;border-bottom:1px solid var(--line)}
+table.cmp th:nth-child(-n+3),table.cmp td:nth-child(-n+3){text-align:left}
+table.cmp tr.cur td{background:#fff6e0}
+table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.tablewrap{overflow-x:auto}
+.qs ol{margin:6px 0 0;padding-left:22px}
+.qs li{margin:6px 0}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.formula{font-family:Montserrat,Inter,sans-serif;font-weight:600;color:var(--navy)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topin">
+    <div class="logo">
+      <!-- School logo is loaded from the TNIS website; if it can't load, a simple emblem shows instead. -->
+      <img id="logoImg" alt="True North International School"
+           src="https://truenorth.edu.vn/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo.c96f0352.png&w=384&q=75"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <span class="fallback">
+        <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="18" fill="none" stroke="#0d2c54" stroke-width="2.5"/>
+          <path d="M20 4 L24 20 L20 36 L16 20 Z" fill="#0d2c54"/>
+          <path d="M20 4 L24 20 L16 20 Z" fill="#f5b335"/>
+          <text x="20" y="14" font-size="6" text-anchor="middle" fill="#fff" font-family="Montserrat" font-weight="800">N</text>
+        </svg>TNIS</span>
+    </div>
+    <div>
+      <h1>Snowy's <span>Sampling Lab</span></h1>
+      <p>Draw random samples of TNIS students and build the sampling distribution of the sample proportion p̂.</p>
+    </div>
+    <span class="tag">AP Stats 2.12 · p̂</span>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="grid">
+
+  <!-- LEFT: population + current sample -->
+  <section class="panel">
+    <h2>The school <small id="popTitle"></small></h2>
+    <div class="row">
+      <span class="lbl">Students N</span>
+      <input type="text" id="inN" inputmode="numeric" value="400" aria-label="Population size">
+      <span class="lbl">Girls %</span>
+      <input type="text" id="inP" inputmode="decimal" value="45" aria-label="Percent girls">
+      <button id="setPop">Set school</button>
+      <span class="msg" id="popMsg"></span>
+      <span class="spacer"></span>
+      <span class="lbl">Success =</span>
+      <div class="seg" id="succSeg">
+        <button data-s="g" class="on">girl</button>
+        <button data-s="b">boy</button>
+      </div>
+    </div>
+    <div class="school"><svg id="popSvg" viewBox="0 0 600 360" aria-label="Population of students">
+      <defs><symbol id="kidSym" viewBox="0 0 10 14"><circle cx="5" cy="3.2" r="2.9"/><path d="M0.7 14 V10.4 a4.3 4.3 0 0 1 8.6 0 V14 z"/></symbol></defs>
+      <g id="popG"></g>
+    </svg></div>
+    <div class="popkey">
+      <span><span class="dot" style="background:var(--girl)"></span>girl</span>
+      <span><span class="dot" style="background:var(--boy)"></span>boy</span>
+      <span id="paramTxt"></span>
+    </div>
+
+    <div class="stage">
+      <div class="snowy" aria-hidden="true">
+        <svg viewBox="0 0 120 140">
+          <!-- Snowy: original polar-bear drawing -->
+          <ellipse cx="60" cy="122" rx="40" ry="20" fill="#fff" stroke="#c4d3e4" stroke-width="2"/>
+          <circle cx="30" cy="34" r="13" fill="#fff" stroke="#c4d3e4" stroke-width="2"/>
+          <circle cx="90" cy="34" r="13" fill="#fff" stroke="#c4d3e4" stroke-width="2"/>
+          <circle cx="30" cy="34" r="6.5" fill="#f3d7e3"/>
+          <circle cx="90" cy="34" r="6.5" fill="#f3d7e3"/>
+          <ellipse cx="60" cy="64" rx="42" ry="37" fill="#fff" stroke="#c4d3e4" stroke-width="2"/>
+          <!-- beanie -->
+          <path d="M24 46 Q60 2 96 46 Q60 36 24 46 Z" fill="#0d2c54"/>
+          <rect x="22" y="42" width="76" height="9" rx="4.5" fill="#173f72"/>
+          <circle cx="60" cy="12" r="7" fill="#f5b335"/>
+          <!-- face -->
+          <circle cx="45" cy="62" r="4.2" fill="#13243b"/><circle cx="46.4" cy="60.6" r="1.3" fill="#fff"/>
+          <circle cx="75" cy="62" r="4.2" fill="#13243b"/><circle cx="76.4" cy="60.6" r="1.3" fill="#fff"/>
+          <circle cx="36" cy="74" r="5" fill="#fbcfe0" opacity=".8"/><circle cx="84" cy="74" r="5" fill="#fbcfe0" opacity=".8"/>
+          <ellipse cx="60" cy="79" rx="16" ry="12" fill="#eef4fa"/>
+          <ellipse cx="60" cy="73.5" rx="6" ry="4.3" fill="#13243b"/>
+          <path d="M60 78 v4 M54 84 q6 5 12 0" stroke="#13243b" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- scarf -->
+          <path d="M26 96 Q60 110 94 96 L94 104 Q60 118 26 104 Z" fill="#f5b335"/>
+          <path d="M78 104 l6 22 l-10 2 l-4 -21 z" fill="#e39f1c"/>
+          <!-- clipboard -->
+          <rect x="8" y="106" width="26" height="30" rx="3" fill="#0d2c54"/>
+          <rect x="11" y="111" width="20" height="22" rx="2" fill="#fff"/>
+          <path d="M14 117h14M14 122h14M14 127h9" stroke="#3d9be0" stroke-width="1.6"/>
+          <circle cx="32" cy="118" r="7" fill="#fff" stroke="#c4d3e4" stroke-width="2"/>
+        </svg>
+        <div class="name">Snowy</div>
+      </div>
+      <div class="bubble" id="bubble">Hi! I'm Snowy. Press <b>Draw a sample</b> and I'll pick students completely at random (an SRS).</div>
+    </div>
+
+    <div class="tray" id="tray">
+      <div class="lbl" id="trayTitle">This sample</div>
+      <div class="kids" id="kids"></div>
+      <div class="eq" id="eq"></div>
+    </div>
+  </section>
+
+  <!-- RIGHT: controls + sampling distribution -->
+  <section class="panel">
+    <h2>Sampling distribution of p̂ <small id="distTitle"></small></h2>
+    <div class="row">
+      <span class="lbl">Sample size n</span>
+      <div class="seg" id="sizeSeg">
+        <button data-n="5">5</button>
+        <button data-n="10">10</button>
+        <button data-n="25" class="on">25</button>
+        <button data-n="50">50</button>
+        <button data-n="100">100</button>
+      </div>
+      <input type="text" id="inn" inputmode="numeric" placeholder="custom n" aria-label="Custom sample size">
+      <button id="setn">Set n</button>
+      <span class="msg" id="nMsg"></span>
+    </div>
+    <div class="row">
+      <button class="primary" id="d1">❄ Draw a sample</button>
+      <button id="d10">+10</button>
+      <button id="d100">+100</button>
+      <button id="d1000">+1000</button>
+      <span class="spacer"></span>
+      <button id="reset">Reset</button>
+    </div>
+
+    <svg class="chart" id="chart" viewBox="0 0 600 260"></svg>
+    <div class="legend">
+      <span><i style="background:var(--sky)"></i>p (parameter)</span>
+      <span><i style="background:var(--gold)"></i>latest p̂</span>
+      <span><i style="background:var(--navy)"></i>Normal model N(p, σ<sub>p̂</sub>)</span>
+      <span class="spacer"></span>
+      <label class="tog"><input type="checkbox" id="normTog" checked> show Normal model</label>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="l">Samples drawn</div><div class="v" id="sK">0</div></div>
+      <div class="stat"><div class="l">Mean of p̂ values</div><div class="v gold" id="sM">–</div></div>
+      <div class="stat"><div class="l">SD of p̂ values</div><div class="v gold" id="sS">–</div></div>
+      <div class="stat"><div class="l">p (true)</div><div class="v" id="sP">–</div></div>
+      <div class="stat"><div class="l">Theory σ = √(p(1−p)/n)</div><div class="v" id="sT">–</div></div>
+      <div class="stat"><div class="l">Exact σ with FPC</div><div class="v" id="sF">–</div></div>
+      <div class="stat"><div class="l">Min / Max p̂</div><div class="v" id="sR">–</div></div>
+      <div class="stat"><div class="l">p̂ within ±0.10 of p</div><div class="v" id="sW">–</div></div>
+    </div>
+
+    <div class="conds">
+      <div class="cond"><div class="h">Random <span class="ok">✓</span></div>Each sample is an SRS: every group of n students is equally likely.</div>
+      <div class="cond" id="c10"></div>
+      <div class="cond" id="cLC"></div>
+    </div>
+
+    <div class="claim">
+      <div class="mont" style="font-weight:700;color:var(--navy)">Evaluate a claim / find a probability</div>
+      <div class="row">
+        <span>P(p̂</span>
+        <div class="seg" id="dirSeg"><button data-d="le" class="on">≤</button><button data-d="ge">≥</button></div>
+        <input type="text" id="inC" inputmode="decimal" value="0.30" aria-label="Cutoff value">
+        <span>) assuming p = <b id="cP">–</b>, n = <b id="cN">–</b></span>
+      </div>
+      <div class="res" id="claimRes">Draw some samples first.</div>
+    </div>
+  </section>
+</div>
+
+<section class="panel" style="margin-top:16px">
+  <h2>Compare settings <small>every school / sample size you have simulated · current one highlighted</small></h2>
+  <div class="tablewrap"><table class="cmp">
+    <thead><tr><th>N</th><th>p</th><th>n</th><th>Samples</th><th>Mean of p̂</th><th>SD of p̂</th><th>Theory σ</th><th>σ with FPC</th><th>n/N</th><th>np, n(1−p)</th></tr></thead>
+    <tbody id="cmpBody"></tbody>
+  </table></div>
+  <div class="note">FPC = finite population correction √((N−n)/(N−1)). It is exact for sampling without replacement; the AP formula ignores it, which is why we check the 10% condition.</div>
+</section>
+
+<section class="panel qs" style="margin-top:16px">
+  <h2>Investigate</h2>
+  <ol>
+    <li><b>Parameter vs. statistic.</b> With the default school (N = 400, 45% girls), identify N, p, n and p̂. Which of these change from sample to sample?</li>
+    <li>Set n = 25 and press <b>Draw a sample</b> five times. Remember: one dot on the chart = one whole sample's p̂. Describe the <b>sampling variability</b> you see.</li>
+    <li>Add 1000 samples. How does the mean of the p̂ values compare with p? What does that say about <b>bias</b>?</li>
+    <li><b>Trials vs. sample size.</b> Compare n = 25 after 100 samples and after 1000 samples. Then try n = 100. Which one changed the spread: more trials, or a larger n?</li>
+    <li>Compare the SD of p̂ for n = 25 and n = 100. By what factor did it shrink? Check against σ = √(p(1−p)/n). How large must n be to halve the SD again?</li>
+    <li><b>10% condition.</b> Set n = 100 (25% of the school). Which value is closer to your simulated SD: the theory σ or the FPC σ? Why does the AP formula overstate the spread here?</li>
+    <li><b>Population size.</b> Change N to 4000 (same 45%) and use n = 100 again. Did the spread change much? What does this tell you about the role of N vs. n?</li>
+    <li><b>Large Counts.</b> Set the school to 10% girls and n = 10. Describe the shape. Increase n until np ≥ 10 and n(1−p) ≥ 10. What happens to the shape?</li>
+    <li><b>Evaluate a claim.</b> Someone claims 45% of TNIS students are girls. A random sample of 50 students has only 30% girls. Use the claim tool with n = 50 and P(p̂ ≤ 0.30). Is this convincing evidence against the claim?</li>
+    <li>Complete the template: “In SRSs of size ___, the sample proportion of girls typically varies by about ___ from the true proportion ___.”</li>
+  </ol>
+</section>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const rnd = Math.random;
+  const fmt = (v, d=3) => (v===null||isNaN(v)) ? "–" : v.toFixed(d);
+
+  // ---------- state ----------
+  let N = 400, G = 180;            // population size and number of girls
+  let n = 25;                      // sample size
+  let succ = "g";                  // success = girl or boy
+  let isGirl = [];                 // population layout (index -> bool)
+  let lastIdx = null, lastK = null;
+  let dir = "le";
+  const runs = new Map();          // key -> {N,G,n,counts,total,sum,sumsq,min,max}  (counts are girls per sample)
+
+  const key = () => `${N}|${G}|${n}`;
+  function run(){
+    const k = key();
+    if (!runs.has(k)) runs.set(k, {N,G,n,counts:new Array(n+1).fill(0),total:0,order:runs.size});
+    return runs.get(k);
+  }
+  const S = () => succ==="g" ? G : N-G;                 // successes in population
+  const p = () => S()/N;
+  const sk = girls => succ==="g" ? girls : n-girls;      // successes in a sample
+
+  // ---------- population ----------
+  function buildPop(){
+    isGirl = Array.from({length:N}, (_,i) => i < G);
+    for (let i=N-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [isGirl[i],isGirl[j]]=[isGirl[j],isGirl[i]]; }
+    const W=600,H=360, aspect = W/H;
+    let cols = Math.ceil(Math.sqrt(N*aspect*1.4)), rows = Math.ceil(N/cols);
+    const cw = W/cols, ch = H/rows;
+    const s = Math.min(cw*0.86, ch*0.86/1.4);
+    const g = $("popG"); let html = "";
+    for (let i=0;i<N;i++){
+      const c=i%cols, r=Math.floor(i/cols);
+      const x = c*cw + (cw-s)/2, y = r*ch + (ch-s*1.4)/2;
+      html += `<use href="#kidSym" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${s.toFixed(1)}" height="${(s*1.4).toFixed(1)}" class="${isGirl[i]?"g":"b"}"/>`;
+    }
+    g.innerHTML = html;
+    $("popSvg").classList.remove("sampled");
+    $("popTitle").textContent = `N = ${N} students · ${G} girls, ${N-G} boys`;
+  }
+
+  // ---------- sampling ----------
+  function srsIdx(){                         // partial Fisher–Yates: real indices
+    const a = [...Array(N).keys()];
+    for (let i=0;i<n;i++){ const j=i+Math.floor(rnd()*(N-i)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a.slice(0,n);
+  }
+  function fastGirls(){                      // same distribution, no indices (hypergeometric)
+    let g=G, rem=N, k=0;
+    for (let i=0;i<n;i++){ if (rnd()*rem < g){ k++; g--; } rem--; }
+    return k;
+  }
+  function record(girls){
+    const r = run(); r.counts[girls]++; r.total++;
+  }
+
+  // ---------- Snowy ----------
+  const CHEER = ["Fresh SRS! Every student had the same chance.","Another sample, another p̂ — that's sampling variability!",
+    "One dot = one whole sample. Keep them coming!","Notice: p stays put, p̂ wiggles.","Random picks only — no favourites!"];
+  function say(html){ $("bubble").innerHTML = html; }
+  function condsNote(){
+    const pp=p(), ten = n <= 0.1*N, lc = n*pp>=10 && n*(1-pp)>=10;
+    const bits=[];
+    if (!ten) bits.push(`n = ${n} is ${(100*n/N).toFixed(0)}% of the school — the 10% condition fails, so √(p(1−p)/n) overstates the spread.`);
+    if (!lc) bits.push(`np = ${fmt(n*pp,1)}, n(1−p) = ${fmt(n*(1-pp),1)} — Large Counts fails, so don't trust the Normal model.`);
+    return bits.join(" ");
+  }
+
+  // ---------- drawing UI ----------
+  function showSample(idx){
+    lastIdx = idx;
+    const set = new Set(idx);
+    const uses = $("popG").children;
+    for (let i=0;i<uses.length;i++) uses[i].classList.toggle("in", set.has(i));
+    $("popSvg").classList.add("sampled");
+    const tray = $("tray"); tray.classList.toggle("small", n > 60);
+    const shown = idx.slice().sort((a,b)=> (isGirl[b]-isGirl[a]));
+    $("kids").innerHTML = n <= 400 ? shown.map((i,k)=>`<span class="kid ${isGirl[i]?"g":"b"}" style="animation-delay:${Math.min(k*12,600)}ms"></span>`).join("") : "";
+  }
+  function renderEq(){
+    if (lastK===null){ $("eq").innerHTML=""; $("trayTitle").textContent="This sample"; return; }
+    const s = sk(lastK), word = succ==="g"?"girls":"boys";
+    $("trayTitle").textContent = `This sample · ${run().total ? "sample #"+run().total : ""}`;
+    $("eq").innerHTML = `p̂ = ${s} ${word} / ${n} = <b>${fmt(s/n)}</b><span class="sub">X = ${s} successes in an SRS of n = ${n}; p̂ = X / n is a statistic.</span>`;
+  }
+
+  // ---------- chart ----------
+  const npdf = (x,m,s) => Math.exp(-0.5*((x-m)/s)**2)/(s*Math.sqrt(2*Math.PI));
+  function ncdf(z){ // Abramowitz–Stegun
+    const t=1/(1+0.2316419*Math.abs(z)), d=0.3989423*Math.exp(-z*z/2);
+    let q=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+    return z>0 ? 1-q : q;
+  }
+  function statsOf(r){
+    const T=r.total; if(!T) return null;
+    let sum=0,sumsq=0,min=null,max=null,within=0; const pp=p();
+    r.counts.forEach((c,g)=>{ if(!c) return; const v=sk(g)/r.n; sum+=c*v; sumsq+=c*v*v; if(min===null||v<min)min=v; if(max===null||v>max)max=v; if(Math.abs(v-pp)<=0.1+1e-9) within+=c; });
+    const mean=sum/T, sd = T>1 ? Math.sqrt(Math.max(0,(sumsq-T*mean*mean)/(T-1))) : null;
+    return {T,mean,sd,min,max,within:within/T};
+  }
+  function sig(nn=n){ const pp=p(); return Math.sqrt(pp*(1-pp)/nn); }
+  function sigF(nn=n){ return N>1 ? sig(nn)*Math.sqrt((N-nn)/(N-1)) : 0; }
+  function cutoff(){ const v=parseFloat($("inC").value); return isNaN(v)?null:v; }
+  const inTail = v => { const c=cutoff(); if(c===null) return false; return dir==="le" ? v<=c+1e-9 : v>=c-1e-9; };
+
+  function drawChart(){
+    const r = run(), svg=$("chart");
+    const W=600,H=260,L=40,R=12,T=14,B=34, pw=W-L-R, ph=H-T-B;
+    const X = v => L + 14 + v*(pw-28);
+    // successes per sample counts
+    const cs = new Array(n+1).fill(0); r.counts.forEach((c,g)=>{ cs[sk(g)]+=c; });
+    const gsz = Math.max(1, Math.ceil((n+1)/60));
+    const bins=[];
+    for (let b=0; b*gsz<=n; b++){
+      let c=0, lo=b*gsz, hi=Math.min(n,lo+gsz-1), tail=0;
+      for (let k=lo;k<=hi;k++){ c+=cs[k]; if(inTail(k/n)) tail+=cs[k]; }
+      bins.push({c, tail, x:(lo+hi)/2/n, w:(hi-lo+1)/n});
+    }
+    const maxC = Math.max(0,...bins.map(b=>b.c));
+    const bwPx = Math.max(2, Math.min(gsz/n*pw*0.86, 34));
+    const pp=p(), s=sig(), sF=sigF();
+    const showN = $("normTog").checked && s>0 && n>1;
+    let out="";
+    // axis
+    for (let t=0;t<=10;t++){ const v=t/10; out+=`<line x1="${X(v)}" x2="${X(v)}" y1="${T+ph}" y2="${T+ph+4}" stroke="#9fb0c4"/><text x="${X(v)}" y="${T+ph+16}" text-anchor="middle">${v.toFixed(1)}</text>`; }
+    out+=`<line x1="${L}" x2="${W-R}" y1="${T+ph}" y2="${T+ph}" stroke="#9fb0c4"/>`;
+    out+=`<text x="${L+pw/2}" y="${H-3}" text-anchor="middle">p̂ = proportion of ${succ==="g"?"girls":"boys"} in the sample</text>`;
+    const dotR = Math.min(bwPx/2*0.92, 6);
+    const useDots = r.total>0 && maxC*dotR*2 <= ph && dotR>=1.6;
+    if (r.total===0){
+      out+=`<text x="${L+pw/2}" y="${T+ph/2}" text-anchor="middle" style="font:600 15px Montserrat,Inter,sans-serif;fill:#9fb0c4">Draw samples to build the distribution</text>`;
+    } else if (useDots){
+      const unit = dotR*2;
+      bins.forEach(b=>{ for(let j=0;j<b.c;j++){ const tail = j < b.tail;
+        out+=`<circle cx="${X(b.x)}" cy="${T+ph-dotR-j*unit}" r="${dotR*0.9}" fill="${tail?"#f5b335":"#3d6fb0"}" stroke="#fff" stroke-width=".6"/>`; } });
+      if (showN){ out+=curve(v => r.total*npdf(v,pp,s)*(gsz/n)*unit, X, T, ph); }
+      out+=`<text x="4" y="${T+8}">1 dot = 1 sample</text>`;
+    } else {
+      let ymax = maxC/r.total;
+      if (showN) ymax=Math.max(ymax, npdf(pp,pp,s)*(gsz/n));
+      ymax*=1.1;
+      const Y = v => T+ph - v/ymax*ph;
+      [0,ymax/2,ymax].forEach(v=>{ out+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#eef2f7"/><text x="${L-5}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(2)}</text>`; });
+      bins.forEach(b=>{ if(!b.c) return; const rel=b.c/r.total, relT=b.tail/r.total;
+        out+=`<rect x="${X(b.x)-bwPx/2}" y="${Y(rel)}" width="${bwPx}" height="${T+ph-Y(rel)}" fill="#3d6fb0" rx="2"/>`;
+        if (relT>0) out+=`<rect x="${X(b.x)-bwPx/2}" y="${Y(relT)}" width="${bwPx}" height="${T+ph-Y(relT)}" fill="#f5b335" rx="2"/>`; });
+      if (showN){ out+=curve(v => npdf(v,pp,s)*(gsz/n)*(ph/ymax), X, T, ph); }
+      out+=`<text x="4" y="${T-3}">rel. freq.</text>`;
+    }
+    // p line + latest
+    out+=`<line x1="${X(pp)}" x2="${X(pp)}" y1="${T}" y2="${T+ph}" stroke="var(--sky)" stroke-width="2.2" stroke-dasharray="6 4"/>`;
+    out+=`<text x="${X(pp)+4}" y="${T+10}" style="fill:var(--sky);font-weight:700">p = ${fmt(pp)}</text>`;
+    if (lastK!==null){ const v=sk(lastK)/n; out+=`<path d="M${X(v)-7} ${T+ph+1} l7 -11 l7 11 z" fill="var(--gold)" stroke="var(--navy)" stroke-width="1"/>`; }
+    svg.innerHTML = out;
+  }
+  function curve(hpx, X, T, ph){
+    let d=""; for(let i=0;i<=240;i++){ const v=i/240; const y=T+ph-Math.min(ph+20,hpx(v)); d+=(i?"L":"M")+X(v).toFixed(1)+" "+y.toFixed(1); }
+    return `<path d="${d}" fill="none" stroke="var(--navy)" stroke-width="1.8" opacity=".85"/>`;
+  }
+
+  // ---------- panels ----------
+  function renderStats(){
+    const r=run(), st=statsOf(r), pp=p();
+    $("sK").textContent = r.total;
+    $("sM").textContent = st?fmt(st.mean):"–";
+    $("sS").textContent = st&&st.sd!==null?fmt(st.sd):"–";
+    $("sP").textContent = fmt(pp);
+    $("sT").textContent = fmt(sig());
+    $("sF").textContent = fmt(sigF());
+    $("sR").textContent = st?`${fmt(st.min,2)} / ${fmt(st.max,2)}`:"–";
+    $("sW").textContent = st?(100*st.within).toFixed(1)+"%":"–";
+    $("distTitle").textContent = `n = ${n} · ${r.total} samples`;
+    $("paramTxt").innerHTML = `<b>p</b> = ${S()}/${N} = ${fmt(pp)} (proportion of ${succ==="g"?"girls":"boys"}) — a parameter`;
+    const ten = n<=0.1*N;
+    $("c10").innerHTML = `<div class="h">10% condition <span class="${ten?"ok":"no"}">${ten?"✓":"✗"}</span></div>n/N = ${n}/${N} = ${(100*n/N).toFixed(1)}% ${ten?"≤":">"} 10% → ${ten?"σ formula works":"use FPC; formula overstates σ"}`;
+    const a=n*pp, b=n*(1-pp), lc=a>=10&&b>=10;
+    $("cLC").innerHTML = `<div class="h">Large Counts <span class="${lc?"ok":"no"}">${lc?"✓":"✗"}</span></div>np = ${fmt(a,1)}, n(1−p) = ${fmt(b,1)} → shape ${lc?"approx. Normal":(pp<0.5?"likely skewed right":pp>0.5?"likely skewed left":"not Normal (too few)")}`;
+    renderClaim(); renderCmp();
+  }
+  function renderClaim(){
+    const r=run(), c=cutoff(), pp=p();
+    $("cP").textContent=fmt(pp); $("cN").textContent=n;
+    $("inC").classList.toggle("bad", c===null||c<0||c>1);
+    if (c===null||c<0||c>1){ $("claimRes").textContent="Enter a value between 0 and 1."; return; }
+    const cs=new Array(n+1).fill(0); r.counts.forEach((cc,g)=>{ cs[sk(g)]+=cc; });
+    let hit=0; cs.forEach((cc,k)=>{ if(inTail(k/n)) hit+=cc; });
+    const s=sig(), sF=sigF(), z=(c-pp)/s, pN = dir==="le"?ncdf(z):1-ncdf(z);
+    const sym = dir==="le"?"≤":"≥";
+    let html = "";
+    if (r.total){ const ps=hit/r.total;
+      html += `Simulation: <b>${hit}</b> of ${r.total} samples had p̂ ${sym} ${c} → <b>${(100*ps).toFixed(1)}%</b> (gold dots). `;
+      if (r.total < 100) html += `<br><span class="verdict" style="background:#fff">Draw at least 100 samples before judging the claim.</span>`;
+      else html += `<br><span class="verdict ${ps<0.05?"no":"ok"}">${ps<0.05?"< 5% → convincing evidence against p = "+fmt(pp,2):"≥ 5% → not convincing; could be chance (doesn't prove p = "+fmt(pp,2)+")"}</span>`;
+    } else html += "Simulation: draw samples to estimate this probability. ";
+    const lc = n*pp>=10 && n*(1-pp)>=10;
+    html += `<br>Normal model: z = (${c} − ${fmt(pp)}) / ${fmt(s,4)} = <b>${z.toFixed(2)}</b> → P ≈ <b>${pN.toFixed(4)}</b>`;
+    if (!lc) html += ` <span class="no">(Large Counts fails — the Normal answer is unreliable)</span>`;
+    else if (n>0.1*N) html += ` <span class="no">(10% fails — σ too big; with FPC z = ${((c-pp)/sF).toFixed(2)})</span>`;
+    $("claimRes").innerHTML = html;
+  }
+  function renderCmp(){
+    const cur=key(); const rowsArr=[...runs.entries()].filter(([,r])=>r.total).sort((a,b)=>a[1].N-b[1].N||a[1].G/a[1].N-b[1].G/b[1].N||a[1].n-b[1].n);
+    $("cmpBody").innerHTML = rowsArr.map(([k,r])=>{
+      const sv = succ==="g"?r.G:r.N-r.G, pp=sv/r.N;
+      let sum=0,sumsq=0; r.counts.forEach((c,g)=>{ const v=(succ==="g"?g:r.n-g)/r.n; sum+=c*v; sumsq+=c*v*v; });
+      const m=sum/r.total, sd=r.total>1?Math.sqrt(Math.max(0,(sumsq-r.total*m*m)/(r.total-1))):null;
+      const th=Math.sqrt(pp*(1-pp)/r.n), f=th*Math.sqrt((r.N-r.n)/Math.max(1,r.N-1));
+      return `<tr class="${k===cur?"cur":""}"><td>${r.N}</td><td>${fmt(pp)}</td><td>${r.n}</td><td>${r.total}</td><td>${fmt(m)}</td><td>${sd===null?"–":fmt(sd)}</td><td>${fmt(th)}</td><td>${fmt(f)}</td><td>${(100*r.n/r.N).toFixed(1)}%</td><td>${fmt(r.n*pp,1)}, ${fmt(r.n*(1-pp),1)}</td></tr>`;
+    }).join("") || `<tr><td colspan="10" style="text-align:left;color:var(--muted)">Nothing simulated yet.</td></tr>`;
+  }
+  function renderAll(){ renderEq(); drawChart(); renderStats(); }
+
+  // ---------- actions ----------
+  function drawOne(){
+    const idx = srsIdx(); const girls = idx.filter(i=>isGirl[i]).length;
+    record(girls); lastK = girls; showSample(idx);
+  }
+  function drawMany(k){
+    for (let i=0;i<k-1;i++) record(fastGirls());
+    drawOne();
+  }
+  $("d1").onclick = () => { drawOne(); renderAll();
+    const note = condsNote(); const s=sk(lastK);
+    say(`${CHEER[Math.floor(rnd()*CHEER.length)]} This time p̂ = ${s}/${n} = <b>${fmt(s/n)}</b>.${note && run().total<=1 ? "<br><small>"+note+"</small>":""}`); };
+  [["d10",10],["d100",100],["d1000",1000]].forEach(([id,k]) => $(id).onclick = () => {
+    drawMany(k); renderAll(); const st=statsOf(run());
+    say(`Whoosh — ${k} more SRSs! Mean of p̂ is <b>${fmt(st.mean)}</b>, right next to p = ${fmt(p())}. Unbiased!`); });
+  $("reset").onclick = () => { runs.delete(key()); lastK=null; $("kids").innerHTML=""; $("popSvg").classList.remove("sampled"); renderAll(); say("Clean slate! Same school, same n — draw again."); };
+
+  function setN(v){
+    n=v; lastK=null; $("kids").innerHTML=""; $("popSvg").classList.remove("sampled");
+    document.querySelectorAll("#sizeSeg button").forEach(b=>b.classList.toggle("on", +b.dataset.n===n));
+    renderAll();
+    const note=condsNote();
+    say(`Sample size is now <b>n = ${n}</b>. Theory says σ = ${fmt(sig())}. ${note||"Both the 10% and Large Counts conditions are met."}`);
+  }
+  $("sizeSeg").onclick = e => { const b=e.target.closest("button"); if(!b) return; $("inn").value=""; $("nMsg").textContent=""; setN(+b.dataset.n); };
+  $("setn").onclick = () => {
+    const v=Number($("inn").value.trim());
+    if (!Number.isInteger(v)||v<1||v>N){ $("inn").classList.add("bad"); $("nMsg").textContent=`n must be a whole number 1–${N}`; return; }
+    $("inn").classList.remove("bad"); $("nMsg").textContent=""; setN(v);
+  };
+  $("inn").onkeydown = e => { if(e.key==="Enter") $("setn").click(); };
+
+  $("setPop").onclick = () => {
+    const nv=Number($("inN").value.trim()), pv=Number($("inP").value.trim());
+    const okN=Number.isInteger(nv)&&nv>=10&&nv<=5000, okP=!isNaN(pv)&&pv>=0&&pv<=100&&$("inP").value.trim()!=="";
+    $("inN").classList.toggle("bad",!okN); $("inP").classList.toggle("bad",!okP);
+    if(!okN||!okP){ $("popMsg").textContent="N: 10–5000 · girls: 0–100%"; return; }
+    $("popMsg").textContent="";
+    N=nv; G=Math.round(pv/100*N);
+    if (n>N) n=N;
+    lastK=null; $("kids").innerHTML="";
+    buildPop(); setN(n);
+    say(`New school: ${N} students, ${G} girls → p = ${G}/${N} = <b>${fmt(G/N)}</b> for girls. ${G/N*100!==pv?"(Rounded to a whole number of students.)":""}`);
+  };
+  [$("inN"),$("inP")].forEach(el=>el.onkeydown=e=>{ if(e.key==="Enter") $("setPop").click(); });
+
+  $("succSeg").onclick = e => { const b=e.target.closest("button"); if(!b) return; succ=b.dataset.s;
+    document.querySelectorAll("#succSeg button").forEach(x=>x.classList.toggle("on",x===b)); renderAll(); };
+  $("dirSeg").onclick = e => { const b=e.target.closest("button"); if(!b) return; dir=b.dataset.d;
+    document.querySelectorAll("#dirSeg button").forEach(x=>x.classList.toggle("on",x===b)); drawChart(); renderClaim(); };
+  $("inC").oninput = () => { drawChart(); renderClaim(); };
+  $("normTog").onchange = drawChart;
+
+  buildPop(); renderAll();
+})();
+</script>
+</body>
+</html>
