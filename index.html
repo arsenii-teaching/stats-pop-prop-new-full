@@ -245,6 +245,7 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
       <span><i style="background:var(--sky)"></i>p (parameter)</span>
       <span><i style="background:var(--gold)"></i>latest p̂</span>
       <span><i style="background:var(--navy)"></i>Normal model N(p, σ<sub>p̂</sub>)</span>
+      <span><span class="dot" style="background:#f5b335;border-radius:2px"></span>samples in the claim tail below (P(p̂ <span id="legTail">≤ 0.30</span>))</span>
       <span class="spacer"></span>
       <label class="tog"><input type="checkbox" id="normTog" checked> show Normal model</label>
     </div>
@@ -253,9 +254,9 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
       <div class="stat"><div class="l">Samples drawn</div><div class="v" id="sK">0</div></div>
       <div class="stat"><div class="l">Mean of p̂ values</div><div class="v gold" id="sM">–</div></div>
       <div class="stat"><div class="l">SD of p̂ values</div><div class="v gold" id="sS">–</div></div>
-      <div class="stat"><div class="l">p (true)</div><div class="v" id="sP">–</div></div>
+      <div class="stat"><div class="l">Normal model?</div><div class="v" id="sP">–</div></div>
       <div class="stat"><div class="l">Theory σ = √(p(1−p)/n)</div><div class="v" id="sT">–</div></div>
-      <div class="stat"><div class="l">Exact σ with FPC</div><div class="v" id="sF">–</div></div>
+      <div class="stat"><div class="l">Theory μ<sub>p̂</sub> = p</div><div class="v" id="sF">–</div></div>
       <div class="stat"><div class="l">Min / Max p̂</div><div class="v" id="sR">–</div></div>
       <div class="stat"><div class="l">p̂ within ±0.10 of p</div><div class="v" id="sW">–</div></div>
     </div>
@@ -282,10 +283,10 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
 <section class="panel" style="margin-top:16px">
   <h2>Compare settings <small>every school / sample size you have simulated · current one highlighted</small></h2>
   <div class="tablewrap"><table class="cmp">
-    <thead><tr><th>N</th><th>p</th><th>n</th><th>Samples</th><th>Mean of p̂</th><th>SD of p̂</th><th>Theory σ</th><th>σ with FPC</th><th>n/N</th><th>np, n(1−p)</th></tr></thead>
+    <thead><tr><th>N</th><th>p</th><th>n</th><th>Samples</th><th>Mean of p̂</th><th>SD of p̂</th><th>Theory σ</th><th>n/N</th><th>np, n(1−p)</th></tr></thead>
     <tbody id="cmpBody"></tbody>
   </table></div>
-  <div class="note">FPC = finite population correction √((N−n)/(N−1)). It is exact for sampling without replacement; the AP formula ignores it, which is why we check the 10% condition.</div>
+  <div class="note">Theory σ = √(p(1−p)/n). It is accurate when n ≤ 10% of N; otherwise the simulated SD comes out smaller.</div>
 </section>
 
 <section class="panel qs" style="margin-top:16px">
@@ -296,7 +297,7 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
     <li>Add 1000 samples. How does the mean of the p̂ values compare with p? What does that say about <b>bias</b>?</li>
     <li><b>Trials vs. sample size.</b> Compare n = 25 after 100 samples and after 1000 samples. Then try n = 100. Which one changed the spread: more trials, or a larger n?</li>
     <li>Compare the SD of p̂ for n = 25 and n = 100. By what factor did it shrink? Check against σ = √(p(1−p)/n). How large must n be to halve the SD again?</li>
-    <li><b>10% condition.</b> Set n = 100 (25% of the school). Which value is closer to your simulated SD: the theory σ or the FPC σ? Why does the AP formula overstate the spread here?</li>
+    <li><b>10% condition.</b> Set n = 100 (25% of the school). Compare your simulated SD with the theory σ. Which is bigger? Why does the formula overstate the spread when we sample a large part of the school without replacement?</li>
     <li><b>Population size.</b> Change N to 4000 (same 45%) and use n = 100 again. Did the spread change much? What does this tell you about the role of N vs. n?</li>
     <li><b>Large Counts.</b> Set the school to 10% girls and n = 10. Describe the shape. Increase n until np ≥ 10 and n(1−p) ≥ 10. What happens to the shape?</li>
     <li><b>Evaluate a claim.</b> Someone claims 45% of TNIS students are girls. A random sample of 50 students has only 30% girls. Use the claim tool with n = 50 and P(p̂ ≤ 0.30). Is this convincing evidence against the claim?</li>
@@ -409,7 +410,6 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
     return {T,mean,sd,min,max,within:within/T};
   }
   function sig(nn=n){ const pp=p(); return Math.sqrt(pp*(1-pp)/nn); }
-  function sigF(nn=n){ return N>1 ? sig(nn)*Math.sqrt((N-nn)/(N-1)) : 0; }
   function cutoff(){ const v=parseFloat($("inC").value); return isNaN(v)?null:v; }
   const inTail = v => { const c=cutoff(); if(c===null) return false; return dir==="le" ? v<=c+1e-9 : v>=c-1e-9; };
 
@@ -428,7 +428,7 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
     }
     const maxC = Math.max(0,...bins.map(b=>b.c));
     const bwPx = Math.max(2, Math.min(gsz/n*pw*0.86, 34));
-    const pp=p(), s=sig(), sF=sigF();
+    const pp=p(), s=sig();
     const showN = $("normTog").checked && s>0 && n>1;
     let out="";
     // axis
@@ -474,27 +474,27 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
     $("sK").textContent = r.total;
     $("sM").textContent = st?fmt(st.mean):"–";
     $("sS").textContent = st&&st.sd!==null?fmt(st.sd):"–";
-    $("sP").textContent = fmt(pp);
+    $("sP").innerHTML = (n*pp>=10&&n*(1-pp)>=10) ? '<span class="ok">Yes</span>' : '<span class="no">No</span>';
     $("sT").textContent = fmt(sig());
-    $("sF").textContent = fmt(sigF());
+    $("sF").textContent = fmt(pp);
     $("sR").textContent = st?`${fmt(st.min,2)} / ${fmt(st.max,2)}`:"–";
     $("sW").textContent = st?(100*st.within).toFixed(1)+"%":"–";
     $("distTitle").textContent = `n = ${n} · ${r.total} samples`;
     $("paramTxt").innerHTML = `<b>p</b> = ${S()}/${N} = ${fmt(pp)} (proportion of ${succ==="g"?"girls":"boys"}) — a parameter`;
     const ten = n<=0.1*N;
-    $("c10").innerHTML = `<div class="h">10% condition <span class="${ten?"ok":"no"}">${ten?"✓":"✗"}</span></div>n/N = ${n}/${N} = ${(100*n/N).toFixed(1)}% ${ten?"≤":">"} 10% → ${ten?"σ formula works":"use FPC; formula overstates σ"}`;
+    $("c10").innerHTML = `<div class="h">10% condition <span class="${ten?"ok":"no"}">${ten?"✓":"✗"}</span></div>n/N = ${n}/${N} = ${(100*n/N).toFixed(1)}% ${ten?"≤":">"} 10% → ${ten?"σ formula works":"σ formula overstates the spread"}`;
     const a=n*pp, b=n*(1-pp), lc=a>=10&&b>=10;
     $("cLC").innerHTML = `<div class="h">Large Counts <span class="${lc?"ok":"no"}">${lc?"✓":"✗"}</span></div>np = ${fmt(a,1)}, n(1−p) = ${fmt(b,1)} → shape ${lc?"approx. Normal":(pp<0.5?"likely skewed right":pp>0.5?"likely skewed left":"not Normal (too few)")}`;
     renderClaim(); renderCmp();
   }
   function renderClaim(){
     const r=run(), c=cutoff(), pp=p();
-    $("cP").textContent=fmt(pp); $("cN").textContent=n;
+    $("cP").textContent=fmt(pp); $("cN").textContent=n; $("legTail").textContent=(dir==="le"?"≤ ":"≥ ")+$("inC").value;
     $("inC").classList.toggle("bad", c===null||c<0||c>1);
     if (c===null||c<0||c>1){ $("claimRes").textContent="Enter a value between 0 and 1."; return; }
     const cs=new Array(n+1).fill(0); r.counts.forEach((cc,g)=>{ cs[sk(g)]+=cc; });
     let hit=0; cs.forEach((cc,k)=>{ if(inTail(k/n)) hit+=cc; });
-    const s=sig(), sF=sigF(), z=(c-pp)/s, pN = dir==="le"?ncdf(z):1-ncdf(z);
+    const s=sig(), z=(c-pp)/s, pN = dir==="le"?ncdf(z):1-ncdf(z);
     const sym = dir==="le"?"≤":"≥";
     let html = "";
     if (r.total){ const ps=hit/r.total;
@@ -505,7 +505,7 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
     const lc = n*pp>=10 && n*(1-pp)>=10;
     html += `<br>Normal model: z = (${c} − ${fmt(pp)}) / ${fmt(s,4)} = <b>${z.toFixed(2)}</b> → P ≈ <b>${pN.toFixed(4)}</b>`;
     if (!lc) html += ` <span class="no">(Large Counts fails — the Normal answer is unreliable)</span>`;
-    else if (n>0.1*N) html += ` <span class="no">(10% fails — σ too big; with FPC z = ${((c-pp)/sF).toFixed(2)})</span>`;
+    else if (n>0.1*N) html += ` <span class="no">(10% condition fails — σ is too big, so this probability is off)</span>`;
     $("claimRes").innerHTML = html;
   }
   function renderCmp(){
@@ -514,9 +514,9 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
       const sv = succ==="g"?r.G:r.N-r.G, pp=sv/r.N;
       let sum=0,sumsq=0; r.counts.forEach((c,g)=>{ const v=(succ==="g"?g:r.n-g)/r.n; sum+=c*v; sumsq+=c*v*v; });
       const m=sum/r.total, sd=r.total>1?Math.sqrt(Math.max(0,(sumsq-r.total*m*m)/(r.total-1))):null;
-      const th=Math.sqrt(pp*(1-pp)/r.n), f=th*Math.sqrt((r.N-r.n)/Math.max(1,r.N-1));
-      return `<tr class="${k===cur?"cur":""}"><td>${r.N}</td><td>${fmt(pp)}</td><td>${r.n}</td><td>${r.total}</td><td>${fmt(m)}</td><td>${sd===null?"–":fmt(sd)}</td><td>${fmt(th)}</td><td>${fmt(f)}</td><td>${(100*r.n/r.N).toFixed(1)}%</td><td>${fmt(r.n*pp,1)}, ${fmt(r.n*(1-pp),1)}</td></tr>`;
-    }).join("") || `<tr><td colspan="10" style="text-align:left;color:var(--muted)">Nothing simulated yet.</td></tr>`;
+      const th=Math.sqrt(pp*(1-pp)/r.n);
+      return `<tr class="${k===cur?"cur":""}"><td>${r.N}</td><td>${fmt(pp)}</td><td>${r.n}</td><td>${r.total}</td><td>${fmt(m)}</td><td>${sd===null?"–":fmt(sd)}</td><td>${fmt(th)}</td><td>${(100*r.n/r.N).toFixed(1)}%</td><td>${fmt(r.n*pp,1)}, ${fmt(r.n*(1-pp),1)}</td></tr>`;
+    }).join("") || `<tr><td colspan="9" style="text-align:left;color:var(--muted)">Nothing simulated yet.</td></tr>`;
   }
   function renderAll(){ renderEq(); drawChart(); renderStats(); }
 
